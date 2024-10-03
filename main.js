@@ -20,11 +20,11 @@ function updateEnemyHealth() {
 }
 
 attackButton.addEventListener("click", () => {
-    performAttack(true); // Thunder Jolt - Character attacks
+    performAttack(true);
 });
 
 harmButton.addEventListener("click", () => {
-    harmEnemy(); // Fire Blast - Enemy takes damage only
+    harmEnemy();
 });
 
 function performAttack(isCharacterAttacking) {
@@ -51,7 +51,7 @@ function performAttack(isCharacterAttacking) {
 }
 
 function harmEnemy() {
-    const damage = Math.floor(Math.random() * 30) + 1; // Fire Blast does more damage
+    const damage = Math.floor(Math.random() * 30) + 1;
     enemyHealth -= damage;
     if (enemyHealth < 0) enemyHealth = 0;
     updateEnemyHealth();
