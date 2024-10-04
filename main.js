@@ -1,87 +1,102 @@
-// main.js
-let characterHealth = 100;
-let enemyHealth = 100;
+// Створення об'єктів character та enemy
+const character = {
+    name: "Pikachu",
+    health: 100,
+    maxHealth: 100,
+    healthElement: document.getElementById("health-character"),
+    progressBarElement: document.getElementById("progressbar-character"),
 
-const healthCharacterDisplay = document.getElementById("health-character");
-const healthEnemyDisplay = document.getElementById("health-enemy");
-const progressBarCharacter = document.getElementById("progressbar-character");
-const progressBarEnemy = document.getElementById("progressbar-enemy");
+    updateHealth: function() {
+        this.healthElement.textContent = `${this.health} / ${this.maxHealth}`;
+        this.progressBarElement.style.width = `${(this.health / this.maxHealth) * 100}%`;
+    },
+
+    takeDamage: function(damage) {
+        this.health -= damage;
+        if (this.health < 0) this.health = 0;
+        this.updateHealth();
+    },
+
+    resetHealth: function() {
+        this.health = this.maxHealth;
+        this.updateHealth();
+    }
+};
+
+const enemy = {
+    name: "Charmander",
+    health: 100,
+    maxHealth: 100,
+    healthElement: document.getElementById("health-enemy"),
+    progressBarElement: document.getElementById("progressbar-enemy"),
+
+    updateHealth: function() {
+        this.healthElement.textContent = `${this.health} / ${this.maxHealth}`;
+        this.progressBarElement.style.width = `${(this.health / this.maxHealth) * 100}%`;
+    },
+
+    takeDamage: function(damage) {
+        this.health -= damage;
+        if (this.health < 0) this.health = 0;
+        this.updateHealth();
+    },
+
+    resetHealth: function() {
+        this.health = this.maxHealth;
+        this.updateHealth();
+    }
+};
+
+// Функції атаки
 const attackButton = document.getElementById("btn-kick");
 const harmButton = document.getElementById("btn-harm");
 
-function updateCharacterHealth() {
-    healthCharacterDisplay.textContent = `${characterHealth} / 100`;
-    progressBarCharacter.style.width = `${(characterHealth / 100) * 100}%`;
-}
-
-function updateEnemyHealth() {
-    healthEnemyDisplay.textContent = `${enemyHealth} / 100`;
-    progressBarEnemy.style.width = `${(enemyHealth / 100) * 100}%`;
-}
-
 attackButton.addEventListener("click", () => {
-    performAttack(true);
+    performAttack(character, enemy, 20);
 });
 
 harmButton.addEventListener("click", () => {
-    harmEnemy();
+    performAttackOnlyEnemy(enemy, 30);
 });
 
-function performAttack(isCharacterAttacking) {
-    const damage = Math.floor(Math.random() * 20) + 1;
-    if (isCharacterAttacking) {
-        enemyHealth -= damage;
-        if (enemyHealth < 0) enemyHealth = 0;
-        updateEnemyHealth();
-        if (enemyHealth === 0) {
-            alert("Вы перемогли Charmander!");
-            resetHealth();
-        } else {
-            attackCharacter();
-        }
-    } else {
-        characterHealth -= damage;
-        if (characterHealth < 0) characterHealth = 0;
-        updateCharacterHealth();
-        if (characterHealth === 0) {
-            alert("Вам не пощастило! Ви програли!");
-            resetHealth();
-        }
-    }
-}
 
-function harmEnemy() {
-    const damage = Math.floor(Math.random() * 30) + 1;
-    enemyHealth -= damage;
-    if (enemyHealth < 0) enemyHealth = 0;
-    updateEnemyHealth();
+function performAttackOnlyEnemy(defender, maxDamage) {
+    const damage = Math.floor(Math.random() * maxDamage) + 1;
+    defender.takeDamage(damage);
 
-    if (enemyHealth === 0) {
+    if (defender.health === 0) {
         alert("Вы перемогли Charmander!");
-        resetHealth();
+        resetGame();
     }
 }
 
-function attackCharacter() {
+function performAttack(attacker, defender, maxDamage) {
+    const damage = Math.floor(Math.random() * maxDamage) + 1;
+    defender.takeDamage(damage);
+
+    if (defender.health === 0) {
+        alert("Вы перемогли Charmander!");
+        resetGame();
+    } else if (attacker === character) {
+        attackEnemy();
+    }
+}
+
+function attackEnemy() {
     const damageToCharacter = Math.floor(Math.random() * 20) + 1;
-    characterHealth -= damageToCharacter;
+    character.takeDamage(damageToCharacter);
 
-    if (characterHealth < 0) characterHealth = 0;
-
-    updateCharacterHealth();
-
-    if (characterHealth === 0) {
+    if (character.health === 0) {
         alert("Вам не пощастило! Ви програли!");
-        resetHealth();
+        resetGame();
     }
 }
 
-function resetHealth() {
-    characterHealth = 100;
-    enemyHealth = 100;
-    updateCharacterHealth();
-    updateEnemyHealth();
+function resetGame() {
+    character.resetHealth();
+    enemy.resetHealth();
 }
 
-updateCharacterHealth();
-updateEnemyHealth();
+// Ініціалізація здоров'я
+character.updateHealth();
+enemy.updateHealth();
