@@ -73,16 +73,46 @@ function random(max) {
     return Math.floor(Math.random() * max);
 }
 
+const createClickCounter = (buttonId, maxClicks) => {
+    let clickCount = 0; // Лічильник кліків
+
+    return {
+        handleClick: () => {
+            if (clickCount < maxClicks) {
+                clickCount++; // Збільшуємо лічильник кліків
+                const remainingClicks = maxClicks - clickCount; // Розраховуємо кількість кліків, що залишилися
+                console.log(`Кнопка ${buttonId} натиснута ${clickCount} разів. Залишилося кліків: ${remainingClicks}`);
+
+                if (clickCount === maxClicks) {
+                    console.log(`Кнопка ${buttonId} досягла ліміту натискань!`);
+                    document.getElementById(buttonId).disabled = true; // Вимикаємо кнопку після досягнення ліміту
+                }
+            }
+        },
+        reset: () => {
+            clickCount = 0; // Скидання лічильника кліків
+            document.getElementById(buttonId).disabled = false; // Включаємо кнопку
+            console.clear();
+        }
+    };
+};
+
+// Додаємо функцію для підрахунку кліків
+const attackButtonHandler = createClickCounter("btn-kick", 7);
+const harmButtonHandler = createClickCounter("btn-harm", 7); 
+
 // Функції атаки
 const attackButton = document.getElementById("btn-kick");
 const harmButton = document.getElementById("btn-harm");
 
 attackButton.addEventListener("click", () => {
     performAttack(character, enemy, 20);
+    attackButtonHandler.handleClick();
 });
 
 harmButton.addEventListener("click", () => {
     performAttackOnlyEnemy(enemy, 30);
+    harmButtonHandler.handleClick();
 });
 
 function performAttackOnlyEnemy(defender, maxDamage) {
@@ -108,7 +138,7 @@ function performAttack(attacker, defender, maxDamage) {
     }
 
     const log = attacker === enemy ? generateLog(attacker, character, character.damage) : generateLog(attacker, enemy, character.damage);
-    console.log(log);
+    // console.log(log);
     character.damage = 0;
     
     battleLogs.unshift(log);
@@ -131,6 +161,9 @@ function resetGame() {
     battleLogs.splice(0, battleLogs.length);
     character.resetHealth();
     enemy.resetHealth();
+
+    attackButtonHandler.reset();
+    harmButtonHandler.reset();
 }
 
 // Ініціалізація здоров'я
