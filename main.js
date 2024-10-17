@@ -128,6 +128,7 @@ function attackEnemy() {
 }
 
 function resetGame() {
+    battleLogs.splice(0, battleLogs.length);
     character.resetHealth();
     enemy.resetHealth();
 }
