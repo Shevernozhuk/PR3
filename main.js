@@ -1,119 +1,112 @@
-import { Pokemon } from './pokemon.js'
-import { generateLog } from './logs.js'
+import { pokemons } from './pokemons.js'
 
-const character = new Pokemon({
-    name: "Pikachu",
-    health: 100,
-    maxHealth: 100,
-    healthId: "health-character",
-    progressBarId: "progressbar-character"
-});
-
-const enemy = new Pokemon({
-    name: "Charmander",
-    health: 100,
-    maxHealth: 100,
-    healthId: "health-enemy",
-    progressBarId: "progressbar-enemy"
-});
-
-let battleLogs = [];
-
-function displayLogs() {
-    const logsDiv = document.getElementById("logs");
-    logsDiv.innerHTML = battleLogs.map(log => `<p>${log}</p>`).join('');
-}
-
-const createClickCounter = (buttonId, maxClicks) => {
-    let clickCount = 0;
-
-    return {
-        handleClick: () => {
-            if (clickCount < maxClicks) {
-                clickCount++;
-                const remainingClicks = maxClicks - clickCount;
-                console.log(`Кнопка ${buttonId} натиснута ${clickCount} разів. Залишилося кліків: ${remainingClicks}`);
-
-                if (clickCount === maxClicks) {
-                    console.log(`Кнопка ${buttonId} досягла ліміту натискань!`);
-                    document.getElementById(buttonId).disabled = true;
-                }
-            }
-        },
-        reset: () => {
-            clickCount = 0;
-            document.getElementById(buttonId).disabled = false;
-            console.clear();
-        }
-    };
+const getRandomPokemon = () => {
+    const randomIndex = Math.floor(Math.random() * pokemons.length);
+    return pokemons[randomIndex];
 };
 
-// Додаємо функцію для підрахунку кліків
-const attackButtonHandler = createClickCounter("btn-kick", 7);
-const harmButtonHandler = createClickCounter("btn-harm", 7);
+const character = getRandomPokemon();
+let enemy = getRandomPokemon();
 
-// Функції атаки
-const attackButton = document.getElementById("btn-kick");
-const harmButton = document.getElementById("btn-harm");
+while (enemy === character) {
+    enemy = getRandomPokemon();
+}
 
-attackButton.addEventListener("click", () => {
-    performAttack(character, enemy, 20);
-    attackButtonHandler.handleClick();
+const renderPokemon = (pokemon, containerClass) => {
+    const nameElement = document.getElementById(`name-${containerClass}`);
+    const healthElement = document.getElementById(`health-${containerClass}`);
+    const progressBarElement = document.getElementById(`progressbar-${containerClass}`);
+    const spriteElement = document.querySelector(`.${containerClass} .sprite`);
+
+    nameElement.textContent = pokemon.name;
+    healthElement.textContent = `${pokemon.hp} / ${pokemon.hp}`;
+    progressBarElement.style.width = '100%';
+    spriteElement.src = pokemon.img;
+};
+
+renderPokemon(character, 'character');
+renderPokemon(enemy, 'enemy');
+
+// Очищуємо контейнер для кнопок
+const controlContainer = document.querySelector('.control');
+controlContainer.innerHTML = '';
+
+// Створюємо кнопки для всіх атак героя
+character.attacks.forEach((attack) => {
+    const button = document.createElement('button');
+    button.classList.add('button');
+    button.innerText = attack.name;
+    button.addEventListener('click', () => {
+        if (attack.maxCount > 0) {
+            // Рандомна шкода у межах minDamage та maxDamage
+            const damage = Math.floor(Math.random() * (attack.maxDamage - attack.minDamage + 1)) + attack.minDamage;
+
+            // Зменшуємо здоров'я ворога
+            enemy.hp -= damage;
+            if (enemy.hp < 0) enemy.hp = 0;  // Не дозволяємо бути менше 0
+
+            // Оновлюємо прогресбар здоров'я ворога
+            updateHealth(enemy, 'enemy');
+
+            // Зменшуємо кількість можливих натискань для цієї атаки
+            attack.maxCount--;
+
+            // Виводимо в консоль кількість разів, скільки ще можна натискати на кнопку
+            console.log(`${attack.name}: ${attack.maxCount} раз(ів) ще можна використати`);
+
+            // Якщо ворог знепритомнів
+            if (enemy.hp === 0) {
+                alert(`Ви перемогли ${enemy.name}!`);
+                resetGame();
+            }
+        } else {
+            console.log(`${attack.name} більше не можна використовувати`);
+        }
+    });
+    document.querySelector('.control').appendChild(button);
 });
 
-harmButton.addEventListener("click", () => {
-    performAttackOnlyEnemy(enemy, 30);
-    harmButtonHandler.handleClick();
+// Статична кнопка для шкоди обом
+const bothDamageButton = document.createElement('button');
+bothDamageButton.classList.add('button');
+bothDamageButton.textContent = 'Нанести шкоду обом';
+
+bothDamageButton.addEventListener('click', () => {
+    const characterDamage = Math.floor(Math.random() * 50) + 10;
+    const enemyDamage = Math.floor(Math.random() * 50) + 10;
+
+    character.hp -= characterDamage;
+    enemy.hp -= enemyDamage;
+
+    if (character.hp < 0) character.hp = 0;
+    if (enemy.hp < 0) enemy.hp = 0;
+
+    updateHealth(character, 'character');
+    updateHealth(enemy, 'enemy');
+
+    if (character.hp === 0 && enemy.hp === 0) {
+        alert("Обидва покемони знепритомніли!");
+        resetGame();
+    } else if (character.hp === 0) {
+        alert("Ваш герой програв!");
+        resetGame();
+    } else if (enemy.hp === 0) {
+        alert(`Ви перемогли ${enemy.name}!`);
+        resetGame();
+    }
 });
 
-function performAttackOnlyEnemy(defender, maxDamage) {
-    const damage = Math.floor(Math.random() * maxDamage) + 1;
-    defender.takeDamage(damage);
+controlContainer.appendChild(bothDamageButton);
 
-    if (defender.health === 0) {
-        alert(`Вы перемогли ${defender.name}!`);
-        resetGame();
-    }
-}
+const updateHealth = (pokemon, containerClass) => {
+    const healthElement = document.getElementById(`health-${containerClass}`);
+    const progressBarElement = document.getElementById(`progressbar-${containerClass}`);
 
-function performAttack(attacker, defender, maxDamage) {
-    const damage = Math.floor(Math.random() * maxDamage) + 1;
-    defender.takeDamage(damage);
-
-    if (defender.health === 0) {
-        alert(`Вы перемогли ${defender.name}!`);
-        resetGame();
-    } else if (attacker === character) {
-        attackEnemy();
-    }
-
-    const log = attacker === enemy ? generateLog(attacker, character, character.damage) : generateLog(attacker, enemy, character.damage);
-    battleLogs.unshift(log);
-    displayLogs();
-}
-
-function attackEnemy() {
-    const damageToCharacter = Math.floor(Math.random() * 20) + 1;
-    character.takeDamage(damageToCharacter);
-    character.damage = damageToCharacter;
-
-    if (character.health === 0) {
-        alert("Вам не пощастило! Ви програли!");
-        resetGame();
-    }
-}
+    healthElement.textContent = `${pokemon.hp} / ${pokemon.hp}`;
+    const healthPercentage = (pokemon.hp / pokemon.maxHealth) * 100;
+    progressBarElement.style.width = `${healthPercentage}%`;
+};
 
 function resetGame() {
-    battleLogs.splice(0, battleLogs.length);
-    character.resetHealth();
-    enemy.resetHealth();
-
-    attackButtonHandler.reset();
-    harmButtonHandler.reset();
-
     window.location.reload();
 }
-
-// Ініціалізація здоров'я
-character.updateHealth();
-enemy.updateHealth();

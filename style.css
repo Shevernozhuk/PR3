@@ -266,18 +266,23 @@ body {
     animation: bounce 0.8s ease infinite;
 }
 
-.button {
+button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     position: relative;
     background: white;
     border: 2px solid #ffc55b;
     border-radius: 10px;
     min-height: 30px;
     vertical-align: middle;
-    padding: 12px 20px;
+    padding: 20px;
     outline: none !important;
     cursor: pointer;
     font-size: 18px;
     margin-bottom: 20px;
+    width: 200px;
 }
 .button:after {
     content: "";
